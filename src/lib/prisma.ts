@@ -1,4 +1,5 @@
-import { PrismaClient } from "@/generated/prisma/client";
+// Use a relative import to avoid Turbopack alias-resolution issues.
+import { PrismaClient } from "../generated/prisma/client";
 
 // Prevent hot-reload from creating new Prisma clients in development.
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
