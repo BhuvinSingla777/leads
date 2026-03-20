@@ -1,0 +1,92 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id            String         @id @default(cuid())
+  name          String
+  createdAt     DateTime       @default(now())
+  leads         Lead[]
+  ingestionRuns IngestionRun[]
+  aiInsights    AIInsight[]
+}
+
+model IngestionRun {
+  id            String    @id @default(cuid())
+  tenantId      String
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  fileName      String?
+  rowsProcessed Int       @default(0)
+  rowsInserted  Int       @default(0)
+  rowsErrored   Int       @default(0)
+  schemaGuess   Json?
+  error         String?
+
+  leads       Lead[]
+  aiInsights  AIInsight[]
+
+  @@index([tenantId, createdAt])
+}
+
+model Lead {
+  id                      String   @id @default(cuid())
+  tenantId                String
+  tenant                  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ingestionRunId          String?
+  ingestionRun            IngestionRun? @relation(fields: [ingestionRunId], references: [id])
+
+  externalId             String?
+  email                  String?
+  phone                  String?
+  name                   String?
+  source                 String?
+  campaign               String?
+  leadStatus             String?
+  outcomeStatus          String?
+  cost                   Float?
+  revenue                Float?
+  createdAtFromCsv       DateTime?
+
+  qualityScore          Float?
+  conversionProbability Float?
+
+  fingerprint            String?
+  duplicateGroupKey     String?
+
+  features              Json?
+  raw                   Json?
+
+  createdAtDb DateTime @default(now())
+
+  @@index([tenantId, fingerprint])
+  @@index([tenantId, externalId])
+  @@index([tenantId, source])
+  @@index([tenantId, campaign])
+}
+
+model AIInsight {
+  id             String   @id @default(cuid())
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ingestionRunId String?
+  ingestionRun   IngestionRun? @relation(fields: [ingestionRunId], references: [id])
+
+  type        String
+  title       String
+  content     String
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId, type])
+}
