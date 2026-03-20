@@ -4,6 +4,9 @@
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
+  // Vercel runtime uses a different Linux/OpenSSL variant than typical local dev/build.
+  // Ensure Prisma generates the query engine for both.
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
